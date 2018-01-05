@@ -50,6 +50,7 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 
 	// Views
 	private TextView title;
+	private TextView questionAttempts;
 	private ViewGroup container;
 	private List<ImageView> faces = new ArrayList<>(6);
 
@@ -74,6 +75,7 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 	@Override
 	public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
 		title = view.findViewById(R.id.title);
+		questionAttempts = view.findViewById(R.id.questionAttempts);
 		container = view.findViewById(R.id.face_container);
 
 		numQuestions = 0;
@@ -147,9 +149,13 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 		numQuestions++;
 		testSet = listRandomizer.pickN(people, 6);
 		testAnswer = listRandomizer.pickOne(testSet);
+		// create the question to display at the top
 		String question = numQuestions == 1 ? QUESTIONS[0] : listRandomizer.pickOne(Arrays.asList(QUESTIONS));
 		String name = testAnswer.getFirstName() + " " + testAnswer.getLastName();
 		title.setText(String.format(question, name));
+		// create the stats below showing how many questions have been asked
+		String attempts = numQuestions == 1 ? "First Question!" : "" + (numQuestions - 1);
+		questionAttempts.setText(attempts);
 		setImages(faces, testSet);
 	}
 
