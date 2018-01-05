@@ -14,7 +14,7 @@ public class Person implements Parcelable {
     private final String firstName;
     private final String lastName;
     private final Headshot headshot;
-    private final List<String> socialLinks;
+    private final List<SocialLink> socialLinks;
 
     public Person(String id,
                   String type,
@@ -23,7 +23,7 @@ public class Person implements Parcelable {
                   String firstName,
                   String lastName,
                   Headshot headshot,
-                  List<String> socialLinks) {
+                  List<SocialLink> socialLinks) {
         this.id = id;
         this.type = type;
         this.slug = slug;
@@ -42,7 +42,16 @@ public class Person implements Parcelable {
         this.firstName = in.readString();
         this.lastName = in.readString();
         this.headshot = in.readParcelable(Headshot.class.getClassLoader());
-        this.socialLinks = in.createStringArrayList();
+        this.socialLinks = in.createTypedArrayList(SocialLink.CREATOR);
+    }
+
+    @Override
+    public String toString() {
+        return "Person{" +
+                "jobTitle='" + jobTitle + '\'' +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                '}';
     }
 
     public String getId() {
@@ -73,7 +82,7 @@ public class Person implements Parcelable {
         return headshot;
     }
 
-    public List<String> getSocialLinks() {
+    public List<SocialLink> getSocialLinks() {
         return socialLinks;
     }
 
@@ -86,7 +95,7 @@ public class Person implements Parcelable {
         dest.writeString(this.firstName);
         dest.writeString(this.lastName);
         dest.writeParcelable(this.headshot, flags);
-        dest.writeStringList(this.socialLinks);
+        dest.writeTypedList(this.socialLinks);
     }
 
     public static final Creator<Person> CREATOR = new Creator<Person>() {

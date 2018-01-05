@@ -3,7 +3,7 @@ package com.willowtreeapps.namegame.network.api;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import com.willowtreeapps.namegame.network.api.model.Profiles;
+import com.willowtreeapps.namegame.network.api.model.Person;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,7 +20,7 @@ public class ProfilesRepository {
     @NonNull
     private List<Listener> listeners = new ArrayList<>(1);
     @Nullable
-    private Profiles profiles;
+    private List<Person> people;
 
     public ProfilesRepository(@NonNull NameGameApi api, Listener... listeners) {
         this.api = api;
@@ -31,17 +31,17 @@ public class ProfilesRepository {
     }
 
     private void load() {
-        this.api.getProfiles().enqueue(new Callback<Profiles>() {
+        this.api.getPeople().enqueue(new Callback<List<Person>>() {
             @Override
-            public void onResponse(Call<Profiles> call, Response<Profiles> response) {
-                profiles = response.body();
+            public void onResponse(Call<List<Person>> call, Response<List<Person>> response) {
+                people = response.body();
                 for (Listener listener : listeners) {
-                    listener.onLoadFinished(profiles);
+                    listener.onLoadFinished(people);
                 }
             }
 
             @Override
-            public void onFailure(Call<Profiles> call, Throwable t) {
+            public void onFailure(Call<List<Person>> call, Throwable t) {
                 for (Listener listener : listeners) {
                     listener.onError(t);
                 }
@@ -52,8 +52,8 @@ public class ProfilesRepository {
     public void register(@NonNull Listener listener) {
         if (listeners.contains(listener)) throw new IllegalStateException("Listener is already registered.");
         listeners.add(listener);
-        if (profiles != null) {
-            listener.onLoadFinished(profiles);
+        if (people != null) {
+            listener.onLoadFinished(people);
         }
     }
 
@@ -62,7 +62,7 @@ public class ProfilesRepository {
     }
 
     public interface Listener {
-        void onLoadFinished(@NonNull Profiles people);
+        void onLoadFinished(@NonNull List<Person> people);
         void onError(@NonNull Throwable error);
     }
 

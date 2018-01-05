@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,8 +17,8 @@ import com.squareup.picasso.Picasso;
 import com.willowtreeapps.namegame.R;
 import com.willowtreeapps.namegame.core.ListRandomizer;
 import com.willowtreeapps.namegame.core.NameGameApplication;
+import com.willowtreeapps.namegame.network.api.ProfilesRepository;
 import com.willowtreeapps.namegame.network.api.model.Person;
-import com.willowtreeapps.namegame.network.api.model.Profiles;
 import com.willowtreeapps.namegame.util.CircleBorderTransform;
 import com.willowtreeapps.namegame.util.Ui;
 
@@ -26,7 +27,8 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-public class NameGameFragment extends Fragment {
+public class NameGameFragment extends Fragment implements ProfilesRepository.Listener {
+	private static final String TAG = NameGameFragment.class.getSimpleName();
 
     private static final Interpolator OVERSHOOT = new OvershootInterpolator();
 
@@ -34,6 +36,8 @@ public class NameGameFragment extends Fragment {
     ListRandomizer listRandomizer;
     @Inject
     Picasso picasso;
+    @Inject
+    ProfilesRepository profilesRepository;
 
     private TextView title;
     private ViewGroup container;
@@ -53,8 +57,8 @@ public class NameGameFragment extends Fragment {
 
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-        title = (TextView) view.findViewById(R.id.title);
-        container = (ViewGroup) view.findViewById(R.id.face_container);
+        title = view.findViewById(R.id.title);
+        container = view.findViewById(R.id.face_container);
 
         //Hide the views until data loads
         title.setAlpha(0);
@@ -69,13 +73,14 @@ public class NameGameFragment extends Fragment {
             face.setScaleY(0);
         }
 
+        // load values from API
+		profilesRepository.register(this);
     }
 
     /**
      * A method for setting the images from people into the imageviews
      */
-    private void setImages(List<ImageView> faces, Profiles profiles) {
-        List<Person> people = profiles.getPeople();
+    private void setImages(List<ImageView> faces, List<Person> people) {
         int imageSize = (int) Ui.convertDpToPixel(100, getContext());
         int n = faces.size();
 
@@ -110,4 +115,13 @@ public class NameGameFragment extends Fragment {
         //TODO evaluate whether it was the right person and make an action based on that
     }
 
+    @Override
+    public void onLoadFinished(@NonNull List<Person> people) {
+        Log.d(TAG, people.toString());
+    }
+
+    @Override
+    public void onError(@NonNull Throwable error) {
+        Log.d(TAG, error.getLocalizedMessage());
+    }
 }
