@@ -26,6 +26,7 @@ import com.willowtreeapps.namegame.util.Ui;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 import javax.inject.Inject;
 
@@ -40,6 +41,23 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 			"What about %s?",
 			"And how about %s?",
 			"And %s?"};
+
+	private static final String[] CORRECT_RESPONSES = {
+			"That was correct!",
+			"Look at you go!",
+			"Wow! Can you do that again?",
+			"You're friggin' awesome!",
+			"I can't believe it! Amazing!",
+			"How'd you get THAT right?!"};
+
+	private static final String[] INCORRECT_RESPONSES = {
+			"Sorry, that was incorrect!",
+			"Nope!",
+			"Aww... maybe next time :(",
+			"Could you try a little harder, please?",
+			"Ummm... no.",
+			"Not even close!",
+			"That was not correct."};
 
 	@Inject
 	ListRandomizer listRandomizer;
@@ -59,6 +77,7 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 	private List<Person> testSet;
 	private Person testAnswer;
 	private int numQuestions;
+	private int correctAnswers;
 
 	@Override
 	public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -79,6 +98,7 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 		container = view.findViewById(R.id.face_container);
 
 		numQuestions = 0;
+		correctAnswers = 0;
 
 		//Hide the views until data loads
 		title.setAlpha(0);
@@ -136,27 +156,37 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 	 */
 	private void onPersonSelected(@NonNull View view, @NonNull Person person) {
 		//TODO evaluate whether it was the right person and make an action based on that
-		String msg = person.equals(testAnswer) ? "Correct!" : "Sorry, that was not correct!";
+		String msg;
+		if (person.equals(testAnswer)) {
+			correctAnswers++;
+			msg = getRandString(CORRECT_RESPONSES);
+		} else
+			msg = getRandString(INCORRECT_RESPONSES);
 		Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
 		getNextTestSet();
 	}
 
 	/**
 	 * Gets the next question to ask the user.
-	 *
 	 */
 	private void getNextTestSet() {
 		numQuestions++;
 		testSet = listRandomizer.pickN(people, 6);
 		testAnswer = listRandomizer.pickOne(testSet);
 		// create the question to display at the top
-		String question = numQuestions == 1 ? QUESTIONS[0] : listRandomizer.pickOne(Arrays.asList(QUESTIONS));
+		String question = numQuestions == 1 ? QUESTIONS[0] : getRandString(QUESTIONS);
 		String name = testAnswer.getFirstName() + " " + testAnswer.getLastName();
 		title.setText(String.format(question, name));
 		// create the stats below showing how many questions have been asked
-		String attempts = numQuestions == 1 ? "First Question!" : "" + (numQuestions - 1);
+		String attempts = numQuestions == 1 ?
+				"First Question!" :
+				String.format(Locale.getDefault(), "%d/%d", correctAnswers, numQuestions - 1);
 		questionAttempts.setText(attempts);
 		setImages(faces, testSet);
+	}
+
+	private String getRandString(String[] strings) {
+		return listRandomizer.pickOne(Arrays.asList(strings));
 	}
 
 	@Override
