@@ -139,6 +139,10 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 		getNextTestSet();
 	}
 
+	/**
+	 * Gets the next question to ask the user.
+	 *
+	 */
 	private void getNextTestSet() {
 		numQuestions++;
 		testSet = listRandomizer.pickN(people, 6);
