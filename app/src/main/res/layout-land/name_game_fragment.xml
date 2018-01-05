@@ -14,47 +14,51 @@
         android:textColor="@color/darkGray"
         android:gravity="center_horizontal"/>
 
-    <LinearLayout
+    <GridLayout
         android:id="@+id/face_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+		android:columnCount="3"
+		android:useDefaultMargins="true"
         android:orientation="horizontal"
         android:gravity="center_vertical">
 
         <ImageView
-            android:layout_width="0dp"
+			android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:contentDescription="@string/cdFace"/>
 
         <ImageView
-            android:layout_width="0dp"
+			android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:background="@android:color/transparent"
             android:contentDescription="@string/cdFace"/>
 
         <ImageView
-            android:layout_width="0dp"
+			android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:background="@android:color/transparent"
             android:contentDescription="@string/cdFace"/>
 
         <ImageView
-            android:layout_width="0dp"
+			android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:background="@android:color/transparent"
             android:contentDescription="@string/cdFace"/>
 
         <ImageView
-            android:layout_width="0dp"
+			android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:background="@android:color/transparent"
             android:contentDescription="@string/cdFace"/>
 
-    </LinearLayout>
+        <ImageView
+			android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@android:color/transparent"
+            android:contentDescription="@string/cdFace"/>
+
+    </GridLayout>
 
 </LinearLayout>
