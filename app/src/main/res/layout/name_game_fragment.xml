@@ -54,8 +54,7 @@
 		android:layout_marginBottom="@dimen/textview_margin_vertical"
 		android:background="@color/colorPrimary"
 		android:gravity="center_horizontal"
-		android:paddingBottom="@dimen/name_game_title_text_margin"
-		android:paddingTop="@dimen/name_game_title_text_margin"
+		android:padding="@dimen/name_game_text_padding"
 		android:textColor="@color/colorSecondaryText"
 		android:textSize="22sp"
 		tools:text="Who is ___?"/>
