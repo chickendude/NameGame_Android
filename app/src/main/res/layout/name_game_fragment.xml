@@ -56,8 +56,9 @@
 		android:gravity="center_horizontal"
 		android:paddingBottom="@dimen/name_game_title_text_margin"
 		android:paddingTop="@dimen/name_game_title_text_margin"
-		android:textColor="@color/colorPrimaryText"
-		android:textSize="22sp"/>
+		android:textColor="@color/colorSecondaryText"
+		android:textSize="22sp"
+		tools:text="Who is ___?"/>
 
 	<android.support.v7.widget.CardView
 		android:layout_width="match_parent"
