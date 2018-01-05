@@ -5,7 +5,6 @@ import android.test.suitebuilder.annotation.SmallTest;
 import com.willowtreeapps.namegame.network.api.NameGameApi;
 import com.willowtreeapps.namegame.network.api.ProfilesRepository;
 import com.willowtreeapps.namegame.network.api.model.Person;
-import com.willowtreeapps.namegame.network.api.model.Profiles;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -27,20 +26,20 @@ public class ProfilesRepositoryTest {
     @Rule
     public final ExpectedException thrown = ExpectedException.none();
 
-    private static final Profiles PROFILES;
+    private static final List<Person> PEOPLE;
 
     static {
         List<Person> people = new ArrayList<>();
         people.add(new Person("1", null, null, null, "Bill", "Smith", null, null));
         people.add(new Person("2", null, null, null, "Pam", "White", null, null));
         people.add(new Person("3", null, null, null, "Fred", "Doe", null, null));
-        PROFILES = new Profiles(people, null);
+        PEOPLE = new ArrayList<>();
     }
 
     @Test
     public void should_throw_for_multiple_registration_of_one_listener() throws Exception {
         NameGameApi api = mock(NameGameApi.class);
-        when(api.getProfiles()).thenReturn(SynchronousCallAdapter.forSuccess(PROFILES));
+        when(api.getPeople()).thenReturn(SynchronousCallAdapter.forSuccess(PEOPLE));
         ProfilesRepository repo = new ProfilesRepository(api);
         ProfilesRepository.Listener listener = mock(ProfilesRepository.Listener.class);
         repo.register(listener);
@@ -51,7 +50,7 @@ public class ProfilesRepositoryTest {
     @Test
     public void should_allow_registration_of_multiple_listeners() throws Exception {
         NameGameApi api = mock(NameGameApi.class);
-        when(api.getProfiles()).thenReturn(SynchronousCallAdapter.forSuccess(PROFILES));
+        when(api.getPeople()).thenReturn(SynchronousCallAdapter.forSuccess(PEOPLE));
         ProfilesRepository repo = new ProfilesRepository(api);
         ProfilesRepository.Listener one = mock(ProfilesRepository.Listener.class);
         ProfilesRepository.Listener two = mock(ProfilesRepository.Listener.class);
@@ -64,27 +63,27 @@ public class ProfilesRepositoryTest {
     @Test
     public void should_notify_new_registrants_on_success() throws Exception {
         NameGameApi api = mock(NameGameApi.class);
-        when(api.getProfiles()).thenReturn(SynchronousCallAdapter.forSuccess(PROFILES));
+        when(api.getPeople()).thenReturn(SynchronousCallAdapter.forSuccess(PEOPLE));
         ProfilesRepository repo = new ProfilesRepository(api);
         ProfilesRepository.Listener listener = mock(ProfilesRepository.Listener.class);
         repo.register(listener);
-        verify(listener, times(1)).onLoadFinished(any(Profiles.class));
+        verify(listener, times(1)).onLoadFinished(any(List.class));
     }
 
     @Test
     public void should_not_notify_new_registrants_on_load_failure() throws Exception {
         NameGameApi api = mock(NameGameApi.class);
-        when(api.getProfiles()).thenReturn(SynchronousCallAdapter.<Profiles>forError());
+        when(api.getPeople()).thenReturn(SynchronousCallAdapter.<List<Person>>forError());
         ProfilesRepository repo = new ProfilesRepository(api);
         ProfilesRepository.Listener listener = mock(ProfilesRepository.Listener.class);
         repo.register(listener);
-        verify(listener, times(0)).onLoadFinished(any(Profiles.class));
+        verify(listener, times(0)).onLoadFinished(any(List.class));
     }
 
     @Test
     public void should_notify_existing_registrants_on_load_failure() throws Exception {
         NameGameApi api = mock(NameGameApi.class);
-        when(api.getProfiles()).thenReturn(SynchronousCallAdapter.<Profiles>forError());
+        when(api.getPeople()).thenReturn(SynchronousCallAdapter.<List<Person>>forError());
         ProfilesRepository.Listener listener = mock(ProfilesRepository.Listener.class);
         ProfilesRepository repo = new ProfilesRepository(api, listener);
         verify(listener, times(1)).onError(any(IOException.class));

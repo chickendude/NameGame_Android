@@ -22,7 +22,7 @@ public abstract class SynchronousCallAdapter<T> extends CallAdapter<T> {
     public void enqueue(Callback<T> callback) {
         try {
             Response<T> response = execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 callback.onResponse(this, response);
             } else {
                 throw new IOException(response.errorBody().string());
