@@ -106,7 +106,7 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 			picasso.load("http:" + person.getHeadshot().getUrl())
 					.placeholder(R.drawable.ic_face_white_48dp)
 					.resize(imageSize, imageSize)
-					.transform(new CircleBorderTransform())
+					.transform(new CircleBorderTransform(getContext()))
 					.into(face);
 		}
 		animateFacesIn();
