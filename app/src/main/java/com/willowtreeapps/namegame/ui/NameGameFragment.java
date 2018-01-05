@@ -82,10 +82,6 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 		for (int i = 0; i < n; i++) {
 			ImageView face = (ImageView) container.getChildAt(i);
 			faces.add(face);
-
-			//Hide the views until data loads
-			face.setScaleX(0);
-			face.setScaleY(0);
 		}
 
 		// load values from API
@@ -101,6 +97,10 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 
 		for (int i = 0; i < n; i++) {
 			ImageView face = faces.get(i);
+			//Hide the views until data loads
+			face.setScaleX(0);
+			face.setScaleY(0);
+
 			final Person person = people.get(i);
 			face.setOnClickListener(imageView -> onPersonSelected(imageView, person));
 			picasso.load("http:" + person.getHeadshot().getUrl())
@@ -119,7 +119,7 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 		title.animate().alpha(1).start();
 		for (int i = 0; i < faces.size(); i++) {
 			ImageView face = faces.get(i);
-			face.animate().scaleX(1).scaleY(1).setStartDelay(800 + 120 * i).setInterpolator(OVERSHOOT).start();
+			face.animate().scaleX(1).scaleY(1).setStartDelay(800 + 60 * i).setInterpolator(OVERSHOOT).start();
 		}
 	}
 
