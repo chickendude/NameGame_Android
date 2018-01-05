@@ -2,4 +2,5 @@
     <dimen name="name_game_title_text_margin">16dp</dimen>
     <dimen name="name_game_text_padding">8dp</dimen>
 	<dimen name="textview_margin_vertical">4dp</dimen>
+	<dimen name="face_image_padding">3dp</dimen>
 </resources>

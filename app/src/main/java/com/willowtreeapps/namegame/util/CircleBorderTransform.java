@@ -12,7 +12,6 @@ import com.willowtreeapps.namegame.R;
 
 public class CircleBorderTransform implements Transformation {
 
-    private static final int BORDER_COLOR = R.color.colorPrimaryDark;
     private static final int BORDER_RADIUS = 6;
     private int color;
 
