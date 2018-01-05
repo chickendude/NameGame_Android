@@ -24,6 +24,7 @@ import com.willowtreeapps.namegame.util.CircleBorderTransform;
 import com.willowtreeapps.namegame.util.Ui;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -35,6 +36,8 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 	private static final String[] QUESTIONS = {
 			"Can you tell me who %s is?",
 			"Who is %s?",
+			"Show me who %s is!",
+			"What about %s?",
 			"And how about %s?",
 			"And %s?"};
 
@@ -140,8 +143,9 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 		numQuestions++;
 		testSet = listRandomizer.pickN(people, 6);
 		testAnswer = listRandomizer.pickOne(testSet);
+		String question = numQuestions == 1 ? QUESTIONS[0] : listRandomizer.pickOne(Arrays.asList(QUESTIONS));
 		String name = testAnswer.getFirstName() + " " + testAnswer.getLastName();
-		title.setText(String.format("Who is %s?", name));
+		title.setText(String.format(question, name));
 		setImages(faces, testSet);
 	}
 
