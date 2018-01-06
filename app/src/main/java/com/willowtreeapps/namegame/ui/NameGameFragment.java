@@ -38,6 +38,7 @@ import javax.inject.Inject;
 
 public class NameGameFragment extends Fragment implements ProfilesRepository.Listener {
 	private static final String TAG = NameGameFragment.class.getSimpleName();
+	public static final String FRAG_TAG = "NameGameFragmentTag";
 
 	private static final Interpolator OVERSHOOT = new OvershootInterpolator();
 	private static final Interpolator DECELERATE = new DecelerateInterpolator();
@@ -115,6 +116,7 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 	private int facesLoaded;
 	private long timeElapsed;
 	private boolean[] visibleFacesStatus;
+	private int totalQuestions;
 
 	/*
 	* Runnable that counts down and shows the progress in the form of a ProgressBar
@@ -219,6 +221,14 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 		responseContainer.bringToFront();
 		title.setText("");
 
+
+		// set up total number of questions to ask
+		totalQuestions = 10;
+		Bundle bundle = getArguments();
+		if (bundle != null && bundle.getBoolean(NameGameLandingFragment.EXTRA_IS_INFINITE, false)) {
+			totalQuestions = 999999;
+		}
+
 		// load face ImageViews into list
 		int n = container.getChildCount();
 		for (int i = 0; i < n; i++) {
@@ -247,7 +257,6 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 
 	@Override
 	public void onSaveInstanceState(@NonNull Bundle outState) {
-//		private int facesLoaded;
 		outState.putParcelableArrayList(SAVE_PEOPLE, (ArrayList) people);
 		outState.putParcelableArrayList(SAVE_TEST_SET, (ArrayList) testSet);
 		outState.putBooleanArray(SAVE_FACE_VISIBLE_STATUS, visibleFacesStatus);
@@ -372,6 +381,9 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 	 * Gets the next question to ask the user.
 	 */
 	private void getNextTestSet() {
+		if (numQuestions == totalQuestions)
+			gameOver();
+
 		// reset visible faces so that all will be visible
 		visibleFacesStatus = null;
 
@@ -380,6 +392,11 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 		testAnswer = listRandomizer.pickOne(testSet);
 		loadTestSet();
 		numQuestions++;
+	}
+
+	private void gameOver() {
+		Toast.makeText(getContext(), "Game Over!", Toast.LENGTH_SHORT).show();
+		getFragmentManager().popBackStack();
 	}
 
 	private void loadTestSet() {

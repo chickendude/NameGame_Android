@@ -8,8 +8,6 @@ import com.willowtreeapps.namegame.core.NameGameApplication;
 
 public class NameGameActivity extends AppCompatActivity {
 
-	private static final String FRAG_TAG = "NameGameFragmentTag";
-
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -21,7 +19,7 @@ public class NameGameActivity extends AppCompatActivity {
 //			NameGameFragment fragment = new NameGameFragment();
 			NameGameLandingFragment fragment = new NameGameLandingFragment();
 			getSupportFragmentManager().beginTransaction()
-					.replace(R.id.container, fragment, FRAG_TAG)
+					.replace(R.id.container, fragment)
 					.commit();
 		}
 	}
