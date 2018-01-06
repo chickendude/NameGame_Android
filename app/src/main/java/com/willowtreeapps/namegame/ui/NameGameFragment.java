@@ -41,6 +41,14 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 
 	private static final Interpolator OVERSHOOT = new OvershootInterpolator();
 	private static final Interpolator DECELERATE = new DecelerateInterpolator();
+
+	private static final String SAVE_PEOPLE = "save_people";
+	private static final String SAVE_TEST_SET = "save_test_set";
+	private static final String SAVE_TEST_ANSWER = "save_test_answer";
+	private static final String SAVE_NUM_QUESTIONS = "save_num_questions";
+	private static final String SAVE_CORRECT_ANSWERS = "save_correct_answers";
+	private static final String SAVE_TIME_ELAPSED = "save_time_elapsed";
+
 	private static final String[] QUESTIONS = {
 			"Can you tell me who %s is?",
 			"Who is %s?",
@@ -131,8 +139,13 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 		responseMessage = view.findViewById(R.id.responseMessage);
 		progressBar = view.findViewById(R.id.progressBar);
 
-		numQuestions = 0;
-		correctAnswers = 0;
+		if (savedInstanceState != null) {
+			numQuestions = savedInstanceState.getInt(SAVE_NUM_QUESTIONS);
+			correctAnswers = savedInstanceState.getInt(SAVE_CORRECT_ANSWERS);
+		} else {
+			numQuestions = 0;
+			correctAnswers = 0;
+		}
 
 		//Hide the views until data loads
 		progressBar.setScaleX(0);
@@ -151,6 +164,18 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 
 		// load values from API
 		profilesRepository.register(this);
+	}
+
+	@Override
+	public void onSaveInstanceState(@NonNull Bundle outState) {
+		super.onSaveInstanceState(outState);
+//		private int facesLoaded;
+		outState.putParcelableArrayList(SAVE_PEOPLE, (ArrayList)people);
+		outState.putParcelableArrayList(SAVE_TEST_SET, (ArrayList)testSet);
+		outState.putParcelable(SAVE_TEST_ANSWER, testAnswer);
+		outState.putInt(SAVE_NUM_QUESTIONS, numQuestions);
+		outState.putInt(SAVE_CORRECT_ANSWERS, correctAnswers);
+		outState.putLong(SAVE_TIME_ELAPSED, System.currentTimeMillis() - questionStartTime);
 	}
 
 	/**
