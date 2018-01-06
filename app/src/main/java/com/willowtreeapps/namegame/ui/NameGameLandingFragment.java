@@ -21,10 +21,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class NameGameLandingFragment extends Fragment {
+	private static final String TAG = NameGameLandingFragment.class.getSimpleName();
 	private static final String SAVE_CURRENT_SELECTION = "save_current_selection";
 	public static final String EXTRA_IS_INFINITE = "extra_is_infinite";
-	private static final String TAG = NameGameLandingFragment.class.getSimpleName();
-	LinearLayout container;
+	public static final String EXTRA_FILTER = "extra_filter";
+	public static final String EXTRA_TIME_LIMIT = "extra_time_limit";
 
 	String[] GAME_MODES = {
 			"The one and only original!",
@@ -43,6 +44,7 @@ public class NameGameLandingFragment extends Fragment {
 	};
 
 	// Views
+	LinearLayout container;
 	TextView description;
 	Button playButton;
 	List<Button> buttons;
@@ -103,7 +105,7 @@ public class NameGameLandingFragment extends Fragment {
 	}
 
 	private void loadGame(View v) {
-		switch(currentSelection) {
+		switch (currentSelection) {
 			case 0:
 				startOriginal(false);
 				break;
@@ -111,6 +113,7 @@ public class NameGameLandingFragment extends Fragment {
 				startOriginal(true);
 				break;
 			case 2:
+				startOriginal(false, "Matt");
 				break;
 			case 3:
 				break;
@@ -122,6 +125,13 @@ public class NameGameLandingFragment extends Fragment {
 	}
 
 	private void startOriginal(boolean isInfinite) {
+		startOriginal(isInfinite, null, 0);
+	}
+	private void startOriginal(boolean isInfinite, String filter) {
+		startOriginal(isInfinite, filter, 0);
+	}
+
+	private void startOriginal(boolean isInfinite, String filter, int timeLimit) {
 		NameGameFragment fragment = new NameGameFragment();
 
 		// set up transitions
@@ -131,6 +141,8 @@ public class NameGameLandingFragment extends Fragment {
 		// pass in arguments
 		Bundle bundle = new Bundle();
 		bundle.putBoolean(EXTRA_IS_INFINITE, isInfinite);
+		bundle.putString(EXTRA_FILTER, filter);
+		bundle.putInt(EXTRA_TIME_LIMIT, timeLimit);
 		fragment.setArguments(bundle);
 
 		// load fragment

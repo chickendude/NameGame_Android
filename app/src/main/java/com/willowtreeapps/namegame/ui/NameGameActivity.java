@@ -16,7 +16,6 @@ public class NameGameActivity extends AppCompatActivity {
 		NameGameApplication.get(this).component().inject(this);
 
 		if (savedInstanceState == null) {
-//			NameGameFragment fragment = new NameGameFragment();
 			NameGameLandingFragment fragment = new NameGameLandingFragment();
 			getSupportFragmentManager().beginTransaction()
 					.replace(R.id.container, fragment)

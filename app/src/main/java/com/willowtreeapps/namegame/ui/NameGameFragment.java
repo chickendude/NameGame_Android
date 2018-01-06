@@ -117,6 +117,7 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 	private long timeElapsed;
 	private boolean[] visibleFacesStatus;
 	private int totalQuestions;
+	private String nameFilter;
 
 	/*
 	* Runnable that counts down and shows the progress in the form of a ProgressBar
@@ -225,8 +226,10 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 		// set up total number of questions to ask
 		totalQuestions = 10;
 		Bundle bundle = getArguments();
-		if (bundle != null && bundle.getBoolean(NameGameLandingFragment.EXTRA_IS_INFINITE, false)) {
-			totalQuestions = 999999;
+		if (bundle != null) {
+			if (bundle.getBoolean(NameGameLandingFragment.EXTRA_IS_INFINITE, false))
+				totalQuestions = 999999;
+			nameFilter = bundle.getString(NameGameLandingFragment.EXTRA_FILTER, null);
 		}
 
 		// load face ImageViews into list
@@ -425,8 +428,16 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 
 	@Override
 	public void onLoadFinished(@NonNull List<Person> people) {
-		Log.d(TAG, people.toString());
-		this.people = people;
+		// apply a name filter if we have one
+		if (nameFilter != null) {
+			this.people = new ArrayList<>();
+			for (Person person : people) {
+				if (person.getFirstName().startsWith(nameFilter))
+					this.people.add(person);
+			}
+		} else {
+			this.people = people;
+		}
 		getNextTestSet();
 	}
 
