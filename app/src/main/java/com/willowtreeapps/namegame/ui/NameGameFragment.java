@@ -247,7 +247,6 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 
 	@Override
 	public void onSaveInstanceState(@NonNull Bundle outState) {
-		super.onSaveInstanceState(outState);
 //		private int facesLoaded;
 		outState.putParcelableArrayList(SAVE_PEOPLE, (ArrayList) people);
 		outState.putParcelableArrayList(SAVE_TEST_SET, (ArrayList) testSet);

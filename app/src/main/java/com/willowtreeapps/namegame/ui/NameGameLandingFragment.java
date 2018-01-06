@@ -15,7 +15,11 @@ import android.widget.TextView;
 import com.willowtreeapps.namegame.R;
 import com.willowtreeapps.namegame.core.NameGameApplication;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class NameGameLandingFragment extends Fragment {
+	private static final String SAVE_CURRENT_SELECTION = "save_current_selection";
 	LinearLayout container;
 
 	String[] GAME_MODES = {
@@ -36,6 +40,10 @@ public class NameGameLandingFragment extends Fragment {
 
 	// Views
 	TextView description;
+	List<Button> buttons = new ArrayList<>(5);
+
+	// Objects
+	int currentSelection;
 
 
 	@Override
@@ -66,12 +74,25 @@ public class NameGameLandingFragment extends Fragment {
 			});
 			button.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.button));
 			container.addView(button);
-			if (i==0)
-				button.requestFocus();
+			buttons.add(button);
 		}
+
+		if (savedInstanceState != null) {
+			currentSelection = savedInstanceState.getInt(SAVE_CURRENT_SELECTION, 0);
+		} else {
+			currentSelection = 0;
+		}
+		buttons.get(currentSelection).requestFocus();
+	}
+
+	@Override
+	public void onSaveInstanceState(@NonNull Bundle outState) {
+		outState.putInt(SAVE_CURRENT_SELECTION, currentSelection);
+
 	}
 
 	public void onButtonClick(View view, int position) {
+		currentSelection = position;
 		description.setText(GAME_MODE_DESCRIPTIONS[position]);
 	}
 }
