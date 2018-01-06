@@ -40,6 +40,7 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 	private static final String TAG = NameGameFragment.class.getSimpleName();
 
 	private static final Interpolator OVERSHOOT = new OvershootInterpolator();
+	private static final Interpolator DECELERATE = new DecelerateInterpolator();
 	private static final String[] QUESTIONS = {
 			"Can you tell me who %s is?",
 			"Who is %s?",
@@ -92,6 +93,7 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 	private CardView responseContainer;
 	private TextView responseMessage;
 	private ProgressBar timerProgress;
+	private ProgressBar progressBar;
 	private List<ImageView> faces = new ArrayList<>(6);
 
 	// Objects
@@ -127,11 +129,14 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 		container = view.findViewById(R.id.face_container);
 		responseContainer = view.findViewById(R.id.responseContainer);
 		responseMessage = view.findViewById(R.id.responseMessage);
+		progressBar = view.findViewById(R.id.progressBar);
 
 		numQuestions = 0;
 		correctAnswers = 0;
 
 		//Hide the views until data loads
+		progressBar.setScaleX(0);
+		progressBar.setScaleY(0);
 		responseContainer.setAlpha(0);
 		responseContainer.setScaleX(0);
 		responseContainer.setScaleY(0);
@@ -152,6 +157,7 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 	 * A method for setting the images from people into the imageviews
 	 */
 	private void setImages(List<ImageView> faces, List<Person> people) {
+		animateProgressBar(1f);
 		int imageSize = (int) Ui.convertDpToPixel(100, getContext());
 		int n = faces.size();
 		facesLoaded = 0;
@@ -184,6 +190,10 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 		}
 		timerThread = new Thread(timerRunnable, "NameGameTimer");
 		timerThread.start();
+	}
+
+	private void animateProgressBar(float scale) {
+		progressBar.animate().scaleY(scale).scaleX(scale).setInterpolator(DECELERATE);
 	}
 
 	/*
@@ -226,7 +236,7 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 
 					ImageView face = listRandomizer.pickOne(visibleFaces);
 					face.setOnClickListener(null);
-					face.animate().alpha(0).setInterpolator(new DecelerateInterpolator());
+					face.animate().alpha(0).setInterpolator(DECELERATE);
 				}
 			});
 			try {
@@ -258,6 +268,7 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 	 * A method to animate the faces into view
 	 */
 	private void animateFacesIn() {
+		animateProgressBar(0f);
 		title.animate().alpha(1).start();
 		for (int i = 0; i < faces.size(); i++) {
 			ImageView face = faces.get(i);
@@ -293,6 +304,7 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 			int i = testSet.indexOf(testAnswer);
 			faces.get(i).setBackgroundResource(R.drawable.correct_answer);
 		}
+		updateAttempts();
 
 		for (ImageView face : faces)
 			face.setClickable(false);
@@ -310,8 +322,6 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 	 * Gets the next question to ask the user.
 	 */
 	private void getNextTestSet() {
-		numQuestions++;
-
 		// get our next set of people to test and choose an answer from among them
 		testSet = listRandomizer.pickN(people, 6);
 		testAnswer = listRandomizer.pickOne(testSet);
@@ -322,13 +332,20 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 		title.setText(String.format(question, name));
 
 		// create the stats below showing how many questions have been asked
-		String attempts = numQuestions == 1 ?
-				"First Question!" :
-				String.format(Locale.getDefault(), "%d/%d", correctAnswers, numQuestions - 1);
-		questionAttempts.setText(attempts);
+		updateAttempts();
+
+		numQuestions++;
 
 		// load images into imageviews
 		setImages(faces, testSet);
+
+	}
+
+	private void updateAttempts() {
+		String attempts = numQuestions == 0 ?
+				"First Question!" :
+				String.format(Locale.getDefault(), "%d/%d", correctAnswers, numQuestions);
+		questionAttempts.setText(attempts);
 	}
 
 	private String getRandString(String[] strings) {

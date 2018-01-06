@@ -71,58 +71,69 @@
 		app:cardCornerRadius="10dp"
 		app:cardElevation="4dp">
 
-		<GridLayout
-			android:id="@+id/face_container"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			android:layout_centerInParent="true"
-			android:layout_gravity="center"
-			android:columnCount="3"
-			android:textAlignment="center">
+		<FrameLayout
+			android:layout_width="match_parent"
+			android:layout_height="match_parent">
 
-			<ImageView
+			<ProgressBar
+				android:id="@+id/progressBar"
+				android:layout_gravity="center"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"/>
+
+			<GridLayout
+				android:id="@+id/face_container"
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
-				android:background="@android:color/transparent"
-				android:contentDescription="@string/cdFace"
-				android:padding="@dimen/face_image_padding"/>
+				android:layout_centerInParent="true"
+				android:layout_gravity="center"
+				android:columnCount="3"
+				android:textAlignment="center">
 
-			<ImageView
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:background="@android:color/transparent"
-				android:contentDescription="@string/cdFace"
-				android:padding="@dimen/face_image_padding"/>
+				<ImageView
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:background="@android:color/transparent"
+					android:contentDescription="@string/cdFace"
+					android:padding="@dimen/face_image_padding"/>
 
-			<ImageView
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:background="@android:color/transparent"
-				android:contentDescription="@string/cdFace"
-				android:padding="@dimen/face_image_padding"/>
+				<ImageView
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:background="@android:color/transparent"
+					android:contentDescription="@string/cdFace"
+					android:padding="@dimen/face_image_padding"/>
 
-			<ImageView
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:background="@android:color/transparent"
-				android:contentDescription="@string/cdFace"
-				android:padding="@dimen/face_image_padding"/>
+				<ImageView
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:background="@android:color/transparent"
+					android:contentDescription="@string/cdFace"
+					android:padding="@dimen/face_image_padding"/>
 
-			<ImageView
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:background="@android:color/transparent"
-				android:contentDescription="@string/cdFace"
-				android:padding="@dimen/face_image_padding"/>
+				<ImageView
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:background="@android:color/transparent"
+					android:contentDescription="@string/cdFace"
+					android:padding="@dimen/face_image_padding"/>
 
-			<ImageView
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:background="@android:color/transparent"
-				android:contentDescription="@string/cdFace"
-				android:padding="@dimen/face_image_padding"/>
+				<ImageView
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:background="@android:color/transparent"
+					android:contentDescription="@string/cdFace"
+					android:padding="@dimen/face_image_padding"/>
 
-		</GridLayout>
+				<ImageView
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:background="@android:color/transparent"
+					android:contentDescription="@string/cdFace"
+					android:padding="@dimen/face_image_padding"/>
+
+			</GridLayout>
+		</FrameLayout>
 	</android.support.v7.widget.CardView>
 
 	<LinearLayout
