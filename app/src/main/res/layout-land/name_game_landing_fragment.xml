@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	xmlns:tools="http://schemas.android.com/tools"
+	android:id="@+id/layout"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	android:background="@color/colorPrimaryLight">
+
+	<TextView
+		android:id="@+id/title"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:layout_alignParentTop="true"
+		android:background="@color/colorPrimary"
+		android:gravity="center_horizontal"
+		android:padding="@dimen/name_game_text_padding"
+		android:text="The Name Game!"
+		android:textColor="@color/colorSecondaryText"
+		android:textSize="22sp"/>
+
+	<android.support.v7.widget.CardView
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:layout_above="@id/playButton"
+		android:layout_below="@id/title"
+		android:layout_margin="@dimen/face_layout_margin"
+		app:cardBackgroundColor="@color/colorPrimary"
+		app:cardCornerRadius="0dp"
+		app:cardElevation="4dp">
+
+		<LinearLayout
+			android:layout_width="match_parent"
+			android:layout_height="match_parent"
+			android:focusable="false"
+			android:focusableInTouchMode="false"
+			android:orientation="horizontal">
+
+			<LinearLayout
+				android:layout_gravity="center"
+				android:gravity="center"
+				android:id="@+id/buttonContainer"
+				android:layout_width="match_parent"
+				android:layout_height="match_parent"
+				android:layout_weight="1"
+				android:background="@color/colorPrimaryDark"
+				android:orientation="vertical">
+			</LinearLayout>
+
+			<ScrollView
+				android:layout_width="match_parent"
+				android:layout_height="match_parent"
+				android:layout_weight="1">
+
+				<TextView
+					android:id="@+id/description"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:padding="@dimen/name_game_text_padding"
+					android:textColor="@color/colorSecondaryText"
+					android:textSize="22sp"
+					tools:text="This is where the description goes."/>
+			</ScrollView>
+
+		</LinearLayout>
+	</android.support.v7.widget.CardView>
+
+	<Button
+		android:id="@+id/playButton"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:layout_alignParentBottom="true"
+		android:background="@drawable/button"
+		android:text="Let's Play"/>
+
+</RelativeLayout>

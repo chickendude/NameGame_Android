@@ -17,12 +17,13 @@ public class NameGameActivity extends AppCompatActivity {
 		setContentView(R.layout.name_game_activity);
 		NameGameApplication.get(this).component().inject(this);
 
-		NameGameFragment fragment = new NameGameFragment();
-
-		if (savedInstanceState == null)
+		if (savedInstanceState == null) {
+//			NameGameFragment fragment = new NameGameFragment();
+			NameGameLandingFragment fragment = new NameGameLandingFragment();
 			getSupportFragmentManager().beginTransaction()
 					.replace(R.id.container, fragment, FRAG_TAG)
 					.commit();
+		}
 	}
 
 }

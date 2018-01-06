@@ -322,9 +322,8 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 		animateProgressBar(0f);
 		title.animate().alpha(1).start();
 		for (int i = 0; i < faces.size(); i++) {
-			ImageView face = faces.get(i);
 			if (visibleFacesStatus[i])
-				face.animate().scaleX(1).scaleY(1).alpha(1).setStartDelay(60 * i).setInterpolator(OVERSHOOT).start();
+				faces.get(i).animate().scaleX(1).scaleY(1).alpha(1).setStartDelay(60 * i).setInterpolator(OVERSHOOT).start();
 		}
 	}
 
