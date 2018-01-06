@@ -10,6 +10,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.DecelerateInterpolator;
 import android.view.animation.Interpolator;
 import android.view.animation.OvershootInterpolator;
 import android.widget.ImageView;
@@ -134,6 +135,7 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 		responseContainer.setAlpha(0);
 		responseContainer.setScaleX(0);
 		responseContainer.setScaleY(0);
+		responseContainer.bringToFront();
 		title.setText("");
 
 		int n = container.getChildCount();
@@ -208,21 +210,48 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 
 			// update UI
 			handler.post(() -> {
-				timerProgress.setProgress(progress);
-				int secondsLeft = progress == 100 ? 10 : (progress / 10) + 1;
-				String seconds = secondsLeft == 1 ? "second" : "seconds";
-				timerSeconds.setText(String.format(Locale.getDefault(), "%d %s", secondsLeft, seconds));
+				int secondsLeft = updateProgress(progress);
+
+				// gradually remove extra faces
+				if (((secondsLeft + 1) / 2) <= facesLoaded - 2) {
+					facesLoaded--;
+					List<ImageView> visibleFaces = new ArrayList<>();
+
+					// add all images that are still visible
+					ImageView correctFace = faces.get(testSet.indexOf(testAnswer));
+					for (ImageView face : faces) {
+						if (face.getAlpha() != 0 && face != correctFace)
+							visibleFaces.add(face);
+					}
+
+					ImageView face = listRandomizer.pickOne(visibleFaces);
+					face.setOnClickListener(null);
+					face.animate().alpha(0).setInterpolator(new DecelerateInterpolator());
+				}
 			});
 			try {
-				Thread.sleep(10);
+				Thread.sleep(50);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 				return;
 			}
-		} while (timerProgress.getProgress() > 0 && !timerThread.isInterrupted());
+		} while (timerProgress.getProgress() > 0);
+		if (timerThread.isInterrupted())
+			return;
 		// time's up!
-		handler.post(() -> answerSelected(TIMES_UP_RESPONSES, false));
+		handler.postDelayed(() -> {
+			updateProgress(-10);
+			answerSelected(TIMES_UP_RESPONSES, false);
+		}, 300);
 	};
+
+	private int updateProgress(int progress) {
+		timerProgress.setProgress(progress);
+		int secondsLeft = progress == 100 ? 10 : (progress / 10) + 1;
+		String seconds = secondsLeft == 1 ? "second" : "seconds";
+		timerSeconds.setText(String.format(Locale.getDefault(), "%d %s", secondsLeft, seconds));
+		return secondsLeft;
+	}
 
 
 	/**
@@ -232,7 +261,7 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 		title.animate().alpha(1).start();
 		for (int i = 0; i < faces.size(); i++) {
 			ImageView face = faces.get(i);
-			face.animate().scaleX(1).scaleY(1).setStartDelay(60 * i).setInterpolator(OVERSHOOT).start();
+			face.animate().scaleX(1).scaleY(1).alpha(1).setStartDelay(60 * i).setInterpolator(OVERSHOOT).start();
 		}
 	}
 
@@ -257,9 +286,7 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 	* Displays a message and highlights the correct answer if chosen answer was incorrect.
 	*/
 	private void answerSelected(String[] responses, boolean isCorrect) {
-		if (timerThread != null) {
-			timerThread.interrupt();
-		}
+		timerThread.interrupt();
 		if (isCorrect)
 			correctAnswers++;
 		else {
@@ -270,7 +297,6 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 		for (ImageView face : faces)
 			face.setClickable(false);
 		responseMessage.setText(getRandString(responses));
-		responseContainer.setAlpha(1);
 		responseContainer.animate().scaleX(1).scaleY(1).alpha(1).setInterpolator(OVERSHOOT).start();
 		View.OnClickListener onClickListener = v -> {
 			v.setOnTouchListener(null);

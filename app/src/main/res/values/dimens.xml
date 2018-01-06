@@ -3,4 +3,8 @@
     <dimen name="name_game_text_padding">8dp</dimen>
 	<dimen name="textview_margin_vertical">4dp</dimen>
 	<dimen name="face_image_padding">3dp</dimen>
+	<dimen name="questions_answered_text_size">22sp</dimen>
+	<dimen name="timer_seconds_text_size">18sp</dimen>
+	<dimen name="face_layout_margin">8dp</dimen>
+	<dimen name="face_layout_margin_landscape">0dp</dimen>
 </resources>

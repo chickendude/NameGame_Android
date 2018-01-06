@@ -40,7 +40,7 @@
 				android:layout_width="match_parent"
 				android:layout_height="wrap_content"
 				android:padding="@dimen/name_game_text_padding"
-				android:text="(tap to continue)"
+				android:text="@string/tap_to_continue"
 				android:textAlignment="center"
 				android:textColor="@color/colorSecondaryText"/>
 		</LinearLayout>
@@ -64,7 +64,7 @@
 		android:layout_height="wrap_content"
 		android:layout_above="@+id/bottomBar"
 		android:layout_below="@id/title"
-		android:layout_margin="@dimen/name_game_title_text_margin"
+		android:layout_margin="@dimen/face_layout_margin"
 		app:cardBackgroundColor="@color/colorPrimary"
 		app:cardCornerRadius="10dp"
 		app:cardElevation="4dp">
@@ -149,7 +149,7 @@
 			android:layout_height="wrap_content"
 			android:padding="@dimen/name_game_text_padding"
 			android:textColor="@color/colorSecondaryText"
-			android:textSize="20sp"
+			android:textSize="@dimen/timer_seconds_text_size"
 			tools:text="10 seconds"/>
 
 		<TextView
@@ -161,7 +161,7 @@
 			android:padding="@dimen/name_game_text_padding"
 			android:textAlignment="textEnd"
 			android:textColor="@color/colorSecondaryText"
-			android:textSize="24sp"
+			android:textSize="@dimen/questions_answered_text_size"
 			tools:text="1/3"/>
 	</LinearLayout>
 </RelativeLayout>
