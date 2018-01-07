@@ -6,5 +6,5 @@
 	<dimen name="questions_answered_text_size">22sp</dimen>
 	<dimen name="timer_seconds_text_size">18sp</dimen>
 	<dimen name="face_layout_margin">8dp</dimen>
-	<dimen name="face_layout_margin_landscape">1dp</dimen>
+	<dimen name="face_layout_margin_landscape">2dp</dimen>
 </resources>

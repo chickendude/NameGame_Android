@@ -68,7 +68,6 @@
 		android:layout_margin="@dimen/face_layout_margin_landscape"
 		android:layout_toRightOf="@id/title"
 		app:cardBackgroundColor="@color/colorPrimary"
-		app:cardCornerRadius="10dp"
 		app:cardElevation="4dp">
 
 		<FrameLayout
