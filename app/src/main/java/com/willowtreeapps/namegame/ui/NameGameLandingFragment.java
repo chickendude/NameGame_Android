@@ -116,10 +116,9 @@ public class NameGameLandingFragment extends Fragment {
 				startOriginal(false, "Matt");
 				break;
 			case 3:
+				startOriginal(true,null, 60);
 				break;
 			case 4:
-				break;
-			case 5:
 				break;
 		}
 	}

@@ -50,6 +50,7 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 	private static final String SAVE_CORRECT_ANSWERS = "save_correct_answers";
 	private static final String SAVE_TIME_ELAPSED = "save_time_elapsed";
 	private static final String SAVE_FACE_VISIBLE_STATUS = "save_face_visible_status";
+	private static final String SAVE_TIME_LIMIT = "save_time_limit";
 
 	private static final String[] QUESTIONS = {
 			"Can you tell me who %s is?",
@@ -93,6 +94,7 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 	ProfilesRepository profilesRepository;
 	Thread timerThread;
 	Handler handler;
+	TimerRunnable timerRunnable;
 
 	// Views
 	private RelativeLayout layout;
@@ -114,78 +116,12 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 	private int correctAnswers;
 	private long questionStartTime;
 	private int facesLoaded;
-	private long timeElapsed;
 	private boolean[] visibleFacesStatus;
 	private int totalQuestions;
 	private String nameFilter;
-
-	/*
-	* Runnable that counts down and shows the progress in the form of a ProgressBar
-	* and updates the number of seconds left.
-	*/
-	Runnable timerRunnable = () -> {
-		// wait until all faces have been loaded before starting the timer
-		while (facesLoaded < 6) {
-			try {
-				Thread.sleep(50);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
-
-		// display the faces all at once
-		handler.post(this::animateFacesIn);
-
-
-		facesLoaded = 0;
-		for (boolean isVisible : visibleFacesStatus) {
-			if (isVisible)
-				facesLoaded++;
-		}
-
-		// set timer start time
-		questionStartTime = System.currentTimeMillis() - timeElapsed;
-		timeElapsed = 0;
-		do {
-			final int progress = 100 - ((int) ((System.currentTimeMillis() - questionStartTime) / 100));
-
-			// update UI
-			handler.post(() -> {
-				int secondsLeft = updateProgress(progress);
-
-				// gradually remove extra faces
-				if (((secondsLeft + 1) / 2) <= facesLoaded - 2 && facesLoaded > 2) {
-					facesLoaded--;
-					List<ImageView> visibleFaces = new ArrayList<>();
-
-					// add all images that are still visible
-					ImageView correctFace = faces.get(testSet.indexOf(testAnswer));
-					for (ImageView face : faces) {
-						if (face.getAlpha() != 0 && face != correctFace)
-							visibleFaces.add(face);
-					}
-
-					ImageView face = listRandomizer.pickOne(visibleFaces);
-					visibleFacesStatus[faces.indexOf(face)] = false;
-					face.setOnClickListener(null);
-					face.animate().alpha(0).setInterpolator(DECELERATE);
-				}
-			});
-			try {
-				Thread.sleep(50);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-				return;
-			}
-		} while (timerProgress.getProgress() > 0);
-		if (timerThread.isInterrupted())
-			return;
-		// time's up!
-		handler.postDelayed(() -> {
-			updateProgress(-10);
-			answerSelected(TIMES_UP_RESPONSES, false);
-		}, 300);
-	};
+	private int timeLimit;
+	private long timeElapsed; // keep track of time across orientation changes
+	private long timePassed; // used alongside time limit
 
 	@Override
 	public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -222,7 +158,6 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 		responseContainer.bringToFront();
 		title.setText("");
 
-
 		// set up total number of questions to ask
 		totalQuestions = 10;
 		Bundle bundle = getArguments();
@@ -230,6 +165,7 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 			if (bundle.getBoolean(NameGameLandingFragment.EXTRA_IS_INFINITE, false))
 				totalQuestions = 999999;
 			nameFilter = bundle.getString(NameGameLandingFragment.EXTRA_FILTER, null);
+			timeLimit = bundle.getInt(NameGameLandingFragment.EXTRA_TIME_LIMIT, 0);
 		}
 
 		// load face ImageViews into list
@@ -248,6 +184,7 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 			correctAnswers = savedInstanceState.getInt(SAVE_CORRECT_ANSWERS);
 			testAnswer = savedInstanceState.getParcelable(SAVE_TEST_ANSWER);
 			timeElapsed = savedInstanceState.getLong(SAVE_TIME_ELAPSED);
+			timeLimit = savedInstanceState.getInt(SAVE_TIME_LIMIT);
 			loadTestSet();
 		} else {
 			numQuestions = 0;
@@ -256,6 +193,11 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 			// load values from API
 			profilesRepository.register(this);
 		}
+
+		if (timeLimit != 0)
+			timerProgress.setMax(timeLimit * 10);
+		else
+			timerProgress.setMax(100);
 	}
 
 	@Override
@@ -267,6 +209,7 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 		outState.putInt(SAVE_NUM_QUESTIONS, numQuestions);
 		outState.putInt(SAVE_CORRECT_ANSWERS, correctAnswers);
 		outState.putLong(SAVE_TIME_ELAPSED, System.currentTimeMillis() - questionStartTime);
+		outState.putInt(SAVE_TIME_LIMIT, timeLimit);
 	}
 
 	/**
@@ -278,21 +221,22 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 		int n = faces.size();
 		facesLoaded = 0;
 
+		// keep track of which faces have been hidden
 		if (visibleFacesStatus == null) {
 			visibleFacesStatus = new boolean[]{true, true, true, true, true, true};
 		}
 
-
+		// load images into faces
 		for (int i = 0; i < n; i++) {
 			ImageView face = faces.get(i);
 
 			//Hide the views until data loads
+			face.setOnClickListener(null);
 			face.setScaleX(0);
 			face.setScaleY(0);
 			face.setBackground(null);
 
 			final Person person = people.get(i);
-			face.setOnClickListener(imageView -> onPersonSelected(imageView, person));
 			picasso.load("http:" + person.getHeadshot().getUrl())
 					.placeholder(R.drawable.ic_face_white_48dp)
 					.resize(imageSize, imageSize)
@@ -309,6 +253,13 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 						}
 					});
 		}
+
+		// set up background timer
+		if (timerRunnable != null)
+			timerRunnable.stop();
+		if (timerThread != null)
+			timerThread.interrupt();
+		timerRunnable = new TimerRunnable();
 		timerThread = new Thread(timerRunnable, "NameGameTimer");
 		timerThread.start();
 	}
@@ -319,12 +270,22 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 
 	private int updateProgress(int progress) {
 		timerProgress.setProgress(progress);
-		int secondsLeft = progress == 100 ? 10 : (progress / 10) + 1;
+		int max = timerProgress.getMax();
+		int secondsLeft = progress == max ? max / 10 : (progress / 10) + 1;
 		String seconds = secondsLeft == 1 ? "second" : "seconds";
 		timerSeconds.setText(String.format(Locale.getDefault(), "%d %s", secondsLeft, seconds));
 		return secondsLeft;
 	}
 
+
+	@Override
+	public void onPause() {
+		super.onPause();
+		if (timerRunnable != null)
+			timerRunnable.stop();
+		if (timerThread != null)
+			timerThread.interrupt();
+	}
 
 	/**
 	 * A method to animate the faces into view
@@ -335,6 +296,8 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 		for (int i = 0; i < faces.size(); i++) {
 			if (visibleFacesStatus[i])
 				faces.get(i).animate().scaleX(1).scaleY(1).alpha(1).setStartDelay(60 * i).setInterpolator(OVERSHOOT).start();
+			final Person person = people.get(i);
+			faces.get(i).setOnClickListener(view -> onPersonSelected(view, person));
 		}
 	}
 
@@ -345,6 +308,9 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 	 * @param person The person that was selected
 	 */
 	private void onPersonSelected(@NonNull View view, @NonNull Person person) {
+		for (ImageView face : faces) {
+			face.setOnClickListener(null);
+		}
 		if (person.equals(testAnswer)) {
 			view.setBackgroundResource(R.drawable.correct_answer);
 			answerSelected(CORRECT_RESPONSES, true);
@@ -359,7 +325,7 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 	* Displays a message and highlights the correct answer if chosen answer was incorrect.
 	*/
 	private void answerSelected(String[] responses, boolean isCorrect) {
-		timerThread.interrupt();
+		timerRunnable.stop();
 		if (isCorrect)
 			correctAnswers++;
 		else {
@@ -368,6 +334,16 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 		}
 		updateAttempts();
 
+		if (timeLimit > 0) {
+			// add the time taken to answer the question to timepassed
+			timePassed = System.currentTimeMillis() - questionStartTime;
+
+			// if we have reached the time limit, the game is over
+			if (timePassed / 1000 >= timeLimit)
+				gameOver();
+		}
+
+		// no extra onclicks and we need to read the entire layout for onclick once message shows up
 		for (ImageView face : faces)
 			face.setClickable(false);
 		responseMessage.setText(getRandString(responses));
@@ -398,7 +374,7 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 	}
 
 	private void gameOver() {
-		Toast.makeText(getContext(), "Game Over!", Toast.LENGTH_SHORT).show();
+		Log.d(TAG, "Game Over");
 		getFragmentManager().popBackStack();
 	}
 
@@ -445,5 +421,84 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 	public void onError(@NonNull Throwable error) {
 		Toast.makeText(getContext(), "There was an error getting the list of names!", Toast.LENGTH_LONG).show();
 		Log.d(TAG, error.getLocalizedMessage());
+	}
+
+	/*
+	* Runnable that counts down and shows the progress in the form of a ProgressBar
+	* and updates the number of seconds left.
+	*/
+	class TimerRunnable implements Runnable {
+		private volatile boolean exit = false;
+		private NameGameFragment fragment;
+
+		@Override
+		public void run() {
+			// wait until all faces have been loaded before starting the timer
+			while (facesLoaded < 6) {
+				try {
+					Thread.sleep(50);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+
+			// display the faces all at once
+			handler.post(() -> animateFacesIn());
+
+			facesLoaded = 0;
+			for (boolean isVisible : visibleFacesStatus) {
+				if (isVisible)
+					facesLoaded++;
+			}
+
+			// set timer start time
+			questionStartTime = System.currentTimeMillis() - timePassed - timeElapsed;
+			timeElapsed = 0;
+			do {
+				final int progress = timerProgress.getMax() - ((int) ((System.currentTimeMillis() - questionStartTime) / 100));
+
+				// update UI
+				handler.post(() -> {
+					int secondsLeft = updateProgress(progress);
+
+					// gradually remove extra faces when we aren't doing a time attack
+					if (timeLimit == 0 && ((secondsLeft + 1) / 2) <= facesLoaded - 2 && facesLoaded > 2) {
+						facesLoaded--;
+						List<ImageView> visibleFaces = new ArrayList<>();
+
+						// add all images that are still visible
+						ImageView correctFace = faces.get(testSet.indexOf(testAnswer));
+						for (ImageView face : faces) {
+							if (face.getAlpha() != 0 && face != correctFace)
+								visibleFaces.add(face);
+						}
+
+						ImageView face = listRandomizer.pickOne(visibleFaces);
+						visibleFacesStatus[faces.indexOf(face)] = false;
+						face.setOnClickListener(null);
+						face.animate().alpha(0).setInterpolator(DECELERATE);
+					}
+				});
+				try {
+					Thread.sleep(50);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+					return;
+				}
+			} while (timerProgress.getProgress() > 0 && !exit);
+			if (exit)
+				return;
+			// time's up!
+			handler.postDelayed(() -> {
+				if (exit)
+					return;
+				updateProgress(-10);
+				answerSelected(TIMES_UP_RESPONSES, false);
+			}, 200);
+		}
+
+		private void stop() {
+			exit = true;
+		}
 	}
 }
