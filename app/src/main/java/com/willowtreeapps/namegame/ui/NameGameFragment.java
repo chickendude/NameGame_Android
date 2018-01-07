@@ -296,7 +296,7 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 		for (int i = 0; i < faces.size(); i++) {
 			if (visibleFacesStatus[i])
 				faces.get(i).animate().scaleX(1).scaleY(1).alpha(1).setStartDelay(60 * i).setInterpolator(OVERSHOOT).start();
-			final Person person = people.get(i);
+			final Person person = testSet.get(i);
 			faces.get(i).setOnClickListener(view -> onPersonSelected(view, person));
 		}
 	}

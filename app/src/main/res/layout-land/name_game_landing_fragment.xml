@@ -38,13 +38,13 @@
 			android:orientation="horizontal">
 
 			<LinearLayout
-				android:layout_gravity="center"
-				android:gravity="center"
 				android:id="@+id/buttonContainer"
 				android:layout_width="match_parent"
 				android:layout_height="match_parent"
+				android:layout_gravity="center"
 				android:layout_weight="1"
 				android:background="@color/colorPrimaryDark"
+				android:gravity="center"
 				android:orientation="vertical">
 			</LinearLayout>
 
@@ -72,6 +72,7 @@
 		android:layout_height="wrap_content"
 		android:layout_alignParentBottom="true"
 		android:background="@drawable/button"
-		android:text="Let's Play"/>
+		android:text="Let's Play"
+		android:textColor="@color/colorSecondaryText"/>
 
 </RelativeLayout>

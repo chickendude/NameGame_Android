@@ -71,6 +71,10 @@ public class NameGameLandingFragment extends Fragment {
 		description = view.findViewById(R.id.description);
 		playButton = view.findViewById(R.id.playButton);
 
+		// load two main colors
+		int colorSecondary = ContextCompat.getColor(getContext(), R.color.colorSecondaryText);
+		int colorPrimary = ContextCompat.getColor(getContext(), R.color.colorPrimaryText);
+
 		// load the currently selected game when clicked
 		playButton.setOnClickListener(this::loadGame);
 
@@ -79,11 +83,18 @@ public class NameGameLandingFragment extends Fragment {
 		for (int i = 0; i < GAME_MODES.length; i++) {
 			Button button = new Button(getContext());
 			button.setText(GAME_MODES[i]);
+			button.setTextColor(colorSecondary);
 			button.setFocusable(true);
 			button.setFocusableInTouchMode(true);
 			final int position = i;
 			button.setOnFocusChangeListener((v, hasFocus) -> {
-				if (hasFocus) onButtonClick(v, position);
+				int color;
+				if (hasFocus) {
+					onButtonClick(v, position);
+					color = colorPrimary;
+				} else
+					color = colorSecondary;
+				button.setTextColor(color);
 			});
 			button.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.button));
 			container.addView(button);
