@@ -3,4 +3,7 @@
     <string name="question">Who is %s?</string>
     <string name="cdFace">A face</string>
 	<string name="tap_to_continue">(tap to continue)</string>
+	<string name="take_me_back">Alright! Now take me back!</string>
+	<string name="total_score">Total score:</string>
+	<string name="point_breakdown">Point Breakdown</string>
 </resources>

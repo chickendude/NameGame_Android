@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.transition.Fade;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.CardView;
 import android.util.Log;
@@ -26,6 +27,8 @@ import com.willowtreeapps.namegame.core.ListRandomizer;
 import com.willowtreeapps.namegame.core.NameGameApplication;
 import com.willowtreeapps.namegame.network.api.ProfilesRepository;
 import com.willowtreeapps.namegame.network.api.model.Person;
+import com.willowtreeapps.namegame.ui.objects.Answer;
+import com.willowtreeapps.namegame.ui.objects.Score;
 import com.willowtreeapps.namegame.util.CircleBorderTransform;
 import com.willowtreeapps.namegame.util.Ui;
 
@@ -51,6 +54,7 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 	private static final String SAVE_TIME_ELAPSED = "save_time_elapsed";
 	private static final String SAVE_FACE_VISIBLE_STATUS = "save_face_visible_status";
 	private static final String SAVE_TIME_LIMIT = "save_time_limit";
+	private static final String SAVE_ANSWER_TIMES = "save_answer_times";
 
 	private static final String[] QUESTIONS = {
 			"Can you tell me who %s is?",
@@ -112,7 +116,6 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 	private List<Person> people;
 	private List<Person> testSet;
 	private Person testAnswer;
-	private int numQuestions;
 	private int correctAnswers;
 	private long questionStartTime;
 	private int facesLoaded;
@@ -122,6 +125,7 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 	private int timeLimit;
 	private long timeElapsed; // keep track of time across orientation changes
 	private long timePassed; // used alongside time limit
+	private List<Answer> answers;
 
 	@Override
 	public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -180,16 +184,16 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 			people = savedInstanceState.getParcelableArrayList(SAVE_PEOPLE);
 			testSet = savedInstanceState.getParcelableArrayList(SAVE_TEST_SET);
 			visibleFacesStatus = savedInstanceState.getBooleanArray(SAVE_FACE_VISIBLE_STATUS);
-			numQuestions = savedInstanceState.getInt(SAVE_NUM_QUESTIONS);
 			correctAnswers = savedInstanceState.getInt(SAVE_CORRECT_ANSWERS);
 			testAnswer = savedInstanceState.getParcelable(SAVE_TEST_ANSWER);
 			timeElapsed = savedInstanceState.getLong(SAVE_TIME_ELAPSED);
 			timeLimit = savedInstanceState.getInt(SAVE_TIME_LIMIT);
+			answers = savedInstanceState.getParcelableArrayList(SAVE_ANSWER_TIMES);
 			loadTestSet();
 		} else {
-			numQuestions = 0;
 			correctAnswers = 0;
 			timeElapsed = 0;
+			answers = new ArrayList<>();
 			// load values from API
 			profilesRepository.register(this);
 		}
@@ -206,11 +210,13 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 		outState.putParcelableArrayList(SAVE_TEST_SET, (ArrayList) testSet);
 		outState.putBooleanArray(SAVE_FACE_VISIBLE_STATUS, visibleFacesStatus);
 		outState.putParcelable(SAVE_TEST_ANSWER, testAnswer);
-		outState.putInt(SAVE_NUM_QUESTIONS, numQuestions);
 		outState.putInt(SAVE_CORRECT_ANSWERS, correctAnswers);
 		outState.putLong(SAVE_TIME_ELAPSED, System.currentTimeMillis() - questionStartTime);
 		outState.putInt(SAVE_TIME_LIMIT, timeLimit);
+		outState.putParcelableArrayList(SAVE_ANSWER_TIMES, (ArrayList) answers);
 	}
+
+
 
 	/**
 	 * A method for setting the images from people into the imageviews
@@ -325,6 +331,7 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 	* Displays a message and highlights the correct answer if chosen answer was incorrect.
 	*/
 	private void answerSelected(String[] responses, boolean isCorrect) {
+		answers.add(new Answer(isCorrect, (int) (System.currentTimeMillis() - questionStartTime - timePassed)));
 		timerRunnable.stop();
 		if (isCorrect)
 			correctAnswers++;
@@ -360,7 +367,7 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 	 * Gets the next question to ask the user.
 	 */
 	private void getNextTestSet() {
-		if (numQuestions == totalQuestions)
+		if (answers.size() == totalQuestions)
 			gameOver();
 
 		// reset visible faces so that all will be visible
@@ -370,17 +377,66 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 		testSet = listRandomizer.pickN(people, 6);
 		testAnswer = listRandomizer.pickOne(testSet);
 		loadTestSet();
-		numQuestions++;
 	}
 
 	private void gameOver() {
 		Log.d(TAG, "Game Over");
-		getFragmentManager().popBackStack();
+		NameGameScoreFragment fragment = new NameGameScoreFragment();
+
+		// find times
+		float totalTime = 0;
+		float fastestTime = 999;
+		int correctAnswers = 0;
+		for (Answer answer : answers) {
+			float time = ((float) answer.getTimeToAnswer()) / 1000;
+			totalTime += time;
+			if (answer.isCorrect()) {
+				correctAnswers++;
+				fastestTime = time < fastestTime ? time : fastestTime;
+			}
+		}
+
+		// create scores
+		int totalTimePoints = (int) (correctAnswers * 1000 / totalTime);
+		String totalTimeValue = String.format(Locale.getDefault(),
+				"%.2f seconds",
+				totalTime);
+		int avgTimePoints = (int) (100 * correctAnswers * answers.size() / totalTime);
+		String avgTimeValue = String.format(Locale.getDefault(),
+				"%.2f seconds",
+				totalTime / answers.size());
+		int fastestTimePoints = (int) (((float) correctAnswers / answers.size()) * (500 / fastestTime));
+		String fastestTimeValue = fastestTime == 999 ? "None" :
+				String.format(Locale.getDefault(),
+						"%.2f seconds",
+						fastestTime);
+		int correctAnswerPoints = totalQuestions > 10 ? correctAnswers * 15 : correctAnswers * 50;
+		String correctAnswerValue = "" + correctAnswers;
+
+		// add scores to list to pass into bundle
+		List<Score> scores = new ArrayList<>();
+		scores.add(new Score("Total Time", totalTimeValue, totalTimePoints));
+		scores.add(new Score("Average Time", avgTimeValue, avgTimePoints));
+		scores.add(new Score("Fastest Time", fastestTimeValue, fastestTimePoints));
+		scores.add(new Score("Correct Answers", correctAnswerValue, correctAnswerPoints));
+
+		// load fragment arguments
+		Bundle bundle = new Bundle();
+		bundle.putParcelableArrayList(NameGameScoreFragment.EXTRA_SCORES, (ArrayList) scores);
+		fragment.setArguments(bundle);
+
+		setExitTransition(new Fade());
+		fragment.setEnterTransition(new Fade());
+
+		// load score fragment
+		getFragmentManager().beginTransaction()
+				.replace(R.id.container, fragment)
+				.commit();
 	}
 
 	private void loadTestSet() {
 		// create the question to display at the top
-		String question = numQuestions == 1 ? QUESTIONS[0] : getRandString(QUESTIONS);
+		String question = answers.size() == 0 ? QUESTIONS[0] : getRandString(QUESTIONS);
 		String name = testAnswer.getFirstName() + " " + testAnswer.getLastName();
 		title.setText(String.format(question, name));
 
@@ -392,9 +448,9 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 	}
 
 	private void updateAttempts() {
-		String attempts = numQuestions == 0 ?
+		String attempts = answers.size() == 0 ?
 				"First Question!" :
-				String.format(Locale.getDefault(), "%d/%d", correctAnswers, numQuestions);
+				String.format(Locale.getDefault(), "%d/%d", correctAnswers, answers.size());
 		questionAttempts.setText(attempts);
 	}
 
@@ -429,7 +485,6 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 	*/
 	class TimerRunnable implements Runnable {
 		private volatile boolean exit = false;
-		private NameGameFragment fragment;
 
 		@Override
 		public void run() {
