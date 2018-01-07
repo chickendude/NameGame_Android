@@ -85,7 +85,7 @@
 				android:layout_height="wrap_content"
 				android:padding="@dimen/name_game_text_padding"
 				android:textAlignment="center"
-				android:textColor="@color/colorPrimaryText"
+				android:textColor="@color/colorSecondaryText"
 				android:textSize="24sp"
 				android:textStyle="bold"
 				tools:text="BEGINNER"/>
@@ -97,7 +97,7 @@
 				android:layout_weight="1"
 				android:padding="@dimen/name_game_text_padding"
 				android:textAlignment="center"
-				android:textColor="@color/colorPrimaryText"
+				android:textColor="@color/colorSecondaryText"
 				android:textSize="20sp"
 				tools:text="Are you even a WillowTree employee?!"/>
 

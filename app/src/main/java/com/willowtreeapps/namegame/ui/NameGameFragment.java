@@ -49,7 +49,6 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 	private static final String SAVE_PEOPLE = "save_people";
 	private static final String SAVE_TEST_SET = "save_test_set";
 	private static final String SAVE_TEST_ANSWER = "save_test_answer";
-	private static final String SAVE_NUM_QUESTIONS = "save_num_questions";
 	private static final String SAVE_CORRECT_ANSWERS = "save_correct_answers";
 	private static final String SAVE_TIME_ELAPSED = "save_time_elapsed";
 	private static final String SAVE_FACE_VISIBLE_STATUS = "save_face_visible_status";
@@ -123,6 +122,8 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 	private int totalQuestions;
 	private String nameFilter;
 	private int timeLimit;
+	private int rangeStart;
+	private int rangeEnd;
 	private long timeElapsed; // keep track of time across orientation changes
 	private long timePassed; // used alongside time limit
 	private List<Answer> answers;
@@ -170,6 +171,8 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 				totalQuestions = 999999;
 			nameFilter = bundle.getString(NameGameLandingFragment.EXTRA_FILTER, null);
 			timeLimit = bundle.getInt(NameGameLandingFragment.EXTRA_TIME_LIMIT, 0);
+			rangeStart = bundle.getInt(NameGameLandingFragment.EXTRA_RANGE_START, 0);
+			rangeEnd = bundle.getInt(NameGameLandingFragment.EXTRA_RANGE_END, 0);
 		}
 
 		// load face ImageViews into list
@@ -215,8 +218,6 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 		outState.putInt(SAVE_TIME_LIMIT, timeLimit);
 		outState.putParcelableArrayList(SAVE_ANSWER_TIMES, (ArrayList) answers);
 	}
-
-
 
 	/**
 	 * A method for setting the images from people into the imageviews
@@ -467,6 +468,8 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 				if (person.getFirstName().startsWith(nameFilter))
 					this.people.add(person);
 			}
+		} else if (rangeEnd > 0) {
+			this.people = people.subList(rangeStart, rangeEnd);
 		} else {
 			this.people = people;
 		}
