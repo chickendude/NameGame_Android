@@ -54,6 +54,10 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 	private static final String SAVE_FACE_VISIBLE_STATUS = "save_face_visible_status";
 	private static final String SAVE_TIME_LIMIT = "save_time_limit";
 	private static final String SAVE_ANSWER_TIMES = "save_answer_times";
+	private static final String SAVE_IS_RESPONSE_SHOWING = "save_is_response_showing";
+	private static final String SAVE_TIMER_SECONDS = "save_timer_seconds";
+	private static final String SAVE_RESPONSE = "save_response";
+
 
 	private static final String[] QUESTIONS = {
 			"Can you tell me who %s is?",
@@ -127,6 +131,7 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 	private long timeElapsed; // keep track of time across orientation changes
 	private long timePassed; // used alongside time limit
 	private List<Answer> answers;
+	private boolean isResponseShowing;
 
 	@Override
 	public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -192,10 +197,23 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 			timeElapsed = savedInstanceState.getLong(SAVE_TIME_ELAPSED);
 			timeLimit = savedInstanceState.getInt(SAVE_TIME_LIMIT);
 			answers = savedInstanceState.getParcelableArrayList(SAVE_ANSWER_TIMES);
+			isResponseShowing = savedInstanceState.getBoolean(SAVE_IS_RESPONSE_SHOWING);
+			timerSeconds.setText(savedInstanceState.getString(SAVE_TIMER_SECONDS));
+			String response = savedInstanceState.getString(SAVE_RESPONSE);
 			loadTestSet();
+			if (isResponseShowing) {
+				if (timeLimit != 0) {
+					questionStartTime = System.currentTimeMillis();
+					for (Answer answer : answers) {
+						questionStartTime -= answer.getTimeToAnswer();
+					}
+				}
+				displayResponse(response);
+			}
 		} else {
 			correctAnswers = 0;
 			timeElapsed = 0;
+			isResponseShowing = false;
 			answers = new ArrayList<>();
 			// load values from API
 			profilesRepository.register(this);
@@ -214,9 +232,13 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 		outState.putBooleanArray(SAVE_FACE_VISIBLE_STATUS, visibleFacesStatus);
 		outState.putParcelable(SAVE_TEST_ANSWER, testAnswer);
 		outState.putInt(SAVE_CORRECT_ANSWERS, correctAnswers);
-		outState.putLong(SAVE_TIME_ELAPSED, System.currentTimeMillis() - questionStartTime);
 		outState.putInt(SAVE_TIME_LIMIT, timeLimit);
 		outState.putParcelableArrayList(SAVE_ANSWER_TIMES, (ArrayList) answers);
+		outState.putBoolean(SAVE_IS_RESPONSE_SHOWING, isResponseShowing);
+		outState.putString(SAVE_TIMER_SECONDS, timerSeconds.getText().toString());
+		outState.putString(SAVE_RESPONSE, responseMessage.getText().toString());
+		timeElapsed = isResponseShowing ? 0 : System.currentTimeMillis() - questionStartTime;
+		outState.putLong(SAVE_TIME_ELAPSED, timeElapsed);
 	}
 
 	/**
@@ -304,7 +326,8 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 			if (visibleFacesStatus[i])
 				faces.get(i).animate().scaleX(1).scaleY(1).alpha(1).setStartDelay(60 * i).setInterpolator(OVERSHOOT).start();
 			final Person person = testSet.get(i);
-			faces.get(i).setOnClickListener(view -> onPersonSelected(view, person));
+			if (visibleFacesStatus[i] && !isResponseShowing)
+				faces.get(i).setOnClickListener(view -> onPersonSelected(view, person));
 		}
 	}
 
@@ -332,14 +355,19 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 	* Displays a message and highlights the correct answer if chosen answer was incorrect.
 	*/
 	private void answerSelected(String[] responses, boolean isCorrect) {
-		answers.add(new Answer(isCorrect, (int) (System.currentTimeMillis() - questionStartTime - timePassed)));
-		timerRunnable.stop();
-		if (isCorrect)
-			correctAnswers++;
-		else {
-			int i = testSet.indexOf(testAnswer);
-			faces.get(i).setBackgroundResource(R.drawable.correct_answer);
+		if (!isResponseShowing) {
+			answers.add(new Answer(isCorrect, (int) (System.currentTimeMillis() - questionStartTime - timePassed)));
+			if (isCorrect)
+				correctAnswers++;
 		}
+		displayResponse(getRandString(responses));
+	}
+
+	private void displayResponse(String response) {
+		isResponseShowing = true;
+		timerRunnable.stop();
+		int i = testSet.indexOf(testAnswer);
+		faces.get(i).setBackgroundResource(R.drawable.correct_answer);
 		updateAttempts();
 
 		if (timeLimit > 0) {
@@ -354,9 +382,10 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 		// no extra onclicks and we need to read the entire layout for onclick once message shows up
 		for (ImageView face : faces)
 			face.setClickable(false);
-		responseMessage.setText(getRandString(responses));
+		responseMessage.setText(response);
 		responseContainer.animate().scaleX(1).scaleY(1).alpha(1).setInterpolator(OVERSHOOT).start();
 		View.OnClickListener onClickListener = v -> {
+			isResponseShowing = false;
 			v.setOnTouchListener(null);
 			responseContainer.animate().scaleX(0).scaleY(0).alpha(0).setInterpolator(OVERSHOOT).start();
 			getNextTestSet();
@@ -502,6 +531,10 @@ public class NameGameFragment extends Fragment implements ProfilesRepository.Lis
 
 			// display the faces all at once
 			handler.post(() -> animateFacesIn());
+
+			// don't start timer if
+			if (isResponseShowing)
+				return;
 
 			facesLoaded = 0;
 			for (boolean isVisible : visibleFacesStatus) {
